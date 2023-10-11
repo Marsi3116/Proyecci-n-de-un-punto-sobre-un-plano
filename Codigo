@@ -1,0 +1,112 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import customtkinter as ctk
+import tkinter as tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+#Apariencia de la pantalla
+ctk.set_appearance_mode("Dark") #color de la pantalla
+ctk.set_default_color_theme("green") #color de los widgets/botones
+appWidth, appHeight = 600, 500 #tamaño de la pantalla
+
+#Variables ingresadas por el usuario
+ecuacion = ''
+punto = ''
+
+#Clase app
+class App(ctk.CTk):
+    # Crea la ventana en donde se ingresarán los datos
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.title("Proyección Ortogonal")
+        self.geometry("800x600")
+
+        self.ecuacion_label = ctk.CTkLabel(self, text="Ecuación del plano en la forma ax + by + cz + d = 0:")
+        self.ecuacion_label.pack()
+
+        self.ecuacion_entry = ctk.CTkEntry(self, placeholder_text="4x + 10y + 5z + 1 = 0")
+        self.ecuacion_entry.pack()
+
+        self.punto_label = ctk.CTkLabel(self, text="Punto en la forma (x,y,z):")
+        self.punto_label.pack()
+
+        self.punto_entry = ctk.CTkEntry(self, placeholder_text="(2,4,6)")
+        self.punto_entry.pack()
+
+        self.calcular_button = ctk.CTkButton(self, text="Calcular Proyección", command=self.calcular_proyeccion)
+        self.calcular_button.pack()
+
+        # para mostrar el valor de la proyeccion
+        self.proyeccion_textbox = ctk.CTkEntry(self,width=250)
+        self.proyeccion_textbox.pack()
+
+        #Añadir la figura dee matplotlib
+        self.fig, self.ax = plt.subplots(figsize=(6, 6))
+        self.ax.axis('off')
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self)
+        self.canvas.get_tk_widget().pack()
+
+    def calcular_proyeccion(self):
+        self.ax.clear()  # Borra la figura existente antes de trazar una nueva
+        self.ax.axis('off')
+
+        ecuacion = self.ecuacion_entry.get()
+        punto = self.punto_entry.get()
+
+        ecuacion = ecuacion.replace('x', ',').replace('y', ',').replace('z', ',').replace('=', ',').replace(' ', '')
+        ecuacion = ecuacion.replace(' - ', ' -').split(',')
+        coeficientes = [float(c) for c in ecuacion]
+
+        punto = punto.replace('(', '').replace(')', '').split(',')
+        coef_punto = [float(c) for c in punto]
+        q, w, e = coef_punto
+        a, b, c, d, cero = coeficientes
+
+        neg_n = [-a, -b, -c]
+        p0 = [0.0, 0.0, -d / c]
+        u = np.array(p0) - np.array(coef_punto)
+        prod_esc = np.dot(neg_n, u)
+        proy = ((prod_esc / (a * a + b * b + c * c)) * np.array(neg_n)) + coef_punto
+
+        proyeccion_text = f'Proyección: ({proy[0]:.2f}, {proy[1]:.2f}, {proy[2]:.2f})'
+        self.proyeccion_textbox.delete(0, tk.END)  #borrar contenido anterior
+        self.proyeccion_textbox.insert(0, proyeccion_text)  #inserta las nuevas coord
+
+        x = np.linspace(-10, 10, 200)
+        y = np.linspace(-10, 10, 200)
+        X, Y = np.meshgrid(x, y)
+        Z_plano = (-d - a * X - b * Y) / c
+        ax = self.fig.add_subplot(111, projection='3d')
+        plt.title('Gráfico de la proyeccion ortogonal de un punto en un plano')
+        ax.plot_surface(X, Y, Z_plano, alpha=0.5)
+        ax.scatter(q, w, e, color='red', s=50, label='Punto Original')
+        ax.scatter(proy[0], proy[1], proy[2], color='green', s=50, label='Proyección ortogonal')
+        ax.legend()
+        ax.set_xlabel('Eje X')
+        ax.set_ylabel('Eje Y')
+        ax.set_zlabel('Eje Z')
+        ax.set_xlim(-10, 10)
+        ax.set_ylim(-10, 10)
+        ax.set_zlim(-10, 10)
+        ax.view_init(elev=20, azim=40)
+        self.canvas.draw()  #para que se dibuje la grafica en la interfaz
+
+if __name__ == "__main__":
+    app = App()
+    # Used to run the application
+    app.mainloop()
+
+
+#Ejemplos
+#4x + 3y + 4z + 8 = 0
+#(10,5,-1)
+
+#2x - 3y + 1z + 2 = 0
+#(-1,2,0)
+#(-10,20,0)
+
+
+#4x + 10y + 5z + 1 = 0
+#(2,4,6)
