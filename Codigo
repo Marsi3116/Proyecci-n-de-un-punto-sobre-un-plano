@@ -56,7 +56,6 @@ class App(ctk.CTk):
         punto = self.punto_entry.get()
 
         ecuacion = ecuacion.replace('x', ',').replace('y', ',').replace('z', ',').replace('=', ',').replace(' ', '')
-        ecuacion = ecuacion.replace('(,', '(1,').replace(',,', ',1,').replace(',)', ',1)')
         ecuacion = ecuacion.replace(' - ', ' -').split(',')
         
         ecuacion = [c if c not in ('+', '') else '1' for c in ecuacion]
