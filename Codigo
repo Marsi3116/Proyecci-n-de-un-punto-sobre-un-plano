@@ -56,8 +56,14 @@ class App(ctk.CTk):
         punto = self.punto_entry.get()
 
         ecuacion = ecuacion.replace('x', ',').replace('y', ',').replace('z', ',').replace('=', ',').replace(' ', '')
+        ecuacion = ecuacion.replace('(,', '(1,').replace(',,', ',1,').replace(',)', ',1)')
         ecuacion = ecuacion.replace(' - ', ' -').split(',')
+        
+        ecuacion = [c if c not in ('+', '') else '1' for c in ecuacion]
+        ecuacion = [c if c not in ('-', '') else '-1' for c in ecuacion]
+        
         coeficientes = [float(c) for c in ecuacion]
+
 
         punto = punto.replace('(', '').replace(')', '').split(',')
         coef_punto = [float(c) for c in punto]
@@ -70,7 +76,7 @@ class App(ctk.CTk):
         prod_esc = np.dot(neg_n, u)
         proy = ((prod_esc / (a * a + b * b + c * c)) * np.array(neg_n)) + coef_punto
 
-        proyeccion_text = f'Proyección: ({proy[0]:.2f}, {proy[1]:.2f}, {proy[2]:.2f})'
+        proyeccion_text = f'Proyección: ({proy[0]:.3f}, {proy[1]:.3f}, {proy[2]:.3f})'
         self.proyeccion_textbox.delete(0, tk.END)  #borrar contenido anterior
         self.proyeccion_textbox.insert(0, proyeccion_text)  #inserta las nuevas coord
 
@@ -93,6 +99,7 @@ class App(ctk.CTk):
         ax.view_init(elev=20, azim=40)
         self.canvas.draw()  #para que se dibuje la grafica en la interfaz
 
+#correr código
 if __name__ == "__main__":
     app = App()
     # Used to run the application
